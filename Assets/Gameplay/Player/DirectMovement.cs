@@ -1,0 +1,103 @@
+using UnityEngine;
+
+public class DirectMovement : MonoBehaviour
+{
+    [Header("移动速度")]
+    public float walkSpeed = 5f;
+    public float runSpeed = 8f;
+
+    [Header("相机参考")]
+    public Transform cameraTransform;     
+
+    [Header("角色旋转平滑度")]
+    public float rotationSmoothTime = 0.1f;
+
+    [Header("跳跃")]
+    public float jumpHeight = 1.5f;
+    public float gravity = -9.81f;
+
+    [Header("地面检测")]
+    public GroundChecker groundChecker;
+
+    private CharacterController controller;
+    private Animator anim;
+    private float currentSpeed;
+    private Vector3 velocity;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+        if (controller == null)
+            controller = gameObject.AddComponent<CharacterController>();
+
+        anim = GetComponent<Animator>();
+
+        controller.height = 1.8f;
+        controller.center = new Vector3(0, 0.9f, 0);
+        controller.radius = 0.3f;
+
+        currentSpeed = walkSpeed;
+    }
+
+    void Update()
+    {
+        if (cameraTransform == null) return;
+
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+
+        currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
+
+        Vector3 forward = cameraTransform.forward;
+        Vector3 right = cameraTransform.right;
+
+        forward.y = 0f;
+        right.y = 0f;
+        forward.Normalize();
+        right.Normalize();
+
+        Vector3 moveDirection = forward * vertical + right * horizontal;
+        float speed = new Vector3(horizontal, 0, vertical).magnitude;
+        float normalizedSpeed = Mathf.Clamp01(speed);
+
+        anim.SetFloat("Speed", normalizedSpeed);
+
+
+        controller.Move(moveDirection * currentSpeed * Time.deltaTime);
+
+        if (moveDirection.magnitude > 0.1f)
+        {
+            Vector3 lookDirection = moveDirection;
+            lookDirection.y = 0f;
+            lookDirection.Normalize();
+
+            if (lookDirection != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothTime * 10f);
+            }
+        }
+
+        bool isGrounded = groundChecker.IsGrounded;
+
+        // 调试输出
+        if (groundChecker.JustLanded)
+            Debug.Log("刚刚落地");
+        if (groundChecker.JustLeftGround)
+            Debug.Log("刚刚起跳");
+
+        if (Input.GetButtonDown("Jump") && isGrounded)
+        {
+            anim.SetTrigger("Jump");
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+        }
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            anim.SetTrigger("Reload");
+            // 换弹逻辑...
+        }
+    }
+}

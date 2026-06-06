@@ -62,29 +62,16 @@ public class DirectMovement : MonoBehaviour
 
         anim.SetFloat("Speed", normalizedSpeed);
 
-
+         
         controller.Move(moveDirection * currentSpeed * Time.deltaTime);
 
-        if (moveDirection.magnitude > 0.1f)
-        {
-            Vector3 lookDirection = moveDirection;
-            lookDirection.y = 0f;
-            lookDirection.Normalize();
-
-            if (lookDirection != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothTime * 10f);
-            }
-        }
+       //if (moveDirection.magnitude > 0.1f)
+       //{
+       //    Quaternion targetRotation = Quaternion.Euler(0, cameraTransform.eulerAngles.y, 0);
+       //    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothTime * 10f);
+       //}    
 
         bool isGrounded = groundChecker.IsGrounded;
-
-        // 覃彸怀堤
-        if (groundChecker.JustLanded)
-            Debug.Log("試試邈華");
-        if (groundChecker.JustLeftGround)
-            Debug.Log("試試れ泐");
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {

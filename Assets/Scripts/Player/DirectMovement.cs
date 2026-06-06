@@ -4,7 +4,8 @@ public class DirectMovement : MonoBehaviour
 {
     [Header("移动速度")]
     public float walkSpeed = 5f;
-    public float runSpeed = 8f;
+    public float aimWalkSpeed = 2f;  //举枪时
+    //public float runSpeed = 8f;
 
     [Header("相机参考")]
     public Transform cameraTransform;     
@@ -46,22 +47,30 @@ public class DirectMovement : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        currentSpeed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
+        float targetSpeed = walkSpeed;
+
+        if (Input.GetButton("Fire2"))  // 鼠标右键按住
+        {
+            targetSpeed = aimWalkSpeed;
+            anim.SetBool("isAiming", true);
+        }
+        else
+        {
+            anim.SetBool("isAiming", false);
+        }
+        currentSpeed = targetSpeed;
 
         Vector3 forward = cameraTransform.forward;
         Vector3 right = cameraTransform.right;
-
         forward.y = 0f;
         right.y = 0f;
         forward.Normalize();
         right.Normalize();
 
         Vector3 moveDirection = forward * vertical + right * horizontal;
-        float speed = new Vector3(horizontal, 0, vertical).magnitude;
-        float normalizedSpeed = Mathf.Clamp01(speed);
 
-        anim.SetFloat("Speed", normalizedSpeed);
-
+        float hasInput = (Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f) ? 1f : 0f;
+        anim.SetFloat("Speed", hasInput);
          
         controller.Move(moveDirection * currentSpeed * Time.deltaTime);
 

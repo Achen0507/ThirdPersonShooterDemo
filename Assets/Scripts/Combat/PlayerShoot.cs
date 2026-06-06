@@ -18,7 +18,9 @@ public class PlayerShoot : MonoBehaviour
     private float nextFireTime = 0f;
     private int currentAmmo = 30;
     private int maxAmmo = 30;
+    private bool isReloading = false;
     private AudioSource audioSource;
+    private Animator anim;
 
     private void Start()
     {
@@ -26,19 +28,22 @@ public class PlayerShoot : MonoBehaviour
         if (audioSource == null && shootSound != null)
             audioSource = gameObject.AddComponent<AudioSource>();
 
+        anim = GetComponent<Animator>();
+
         UpdateAmmoUI();
     }
 
     void Update()
     {
-        if (Input.GetButtonDown("Fire1") && Time.time >= nextFireTime)
+        if (isReloading) return;
+
+        if (Input.GetButtonDown("Fire1") && Time.time >= nextFireTime && anim.GetBool("isAiming"))
         {
             Shoot();
-            nextFireTime = Time.time + fireRate;
         }
 
-        // °´ R »»µ¯
-        if (Input.GetKeyDown(KeyCode.R))
+        //¾ÙÇ¹»»µ¯
+        if (Input.GetKeyDown(KeyCode.R) && anim.GetBool("isAiming")&& currentAmmo < maxAmmo && !isReloading)
         {
             Reload();
         }
@@ -53,8 +58,10 @@ public class PlayerShoot : MonoBehaviour
 
         currentAmmo--;
         UpdateAmmoUI();
+        nextFireTime = Time.time + fireRate;
+        anim.SetTrigger("Shoot");
 
-        Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit, range))
@@ -91,8 +98,16 @@ public class PlayerShoot : MonoBehaviour
     }
 
     void Reload() {
+        isReloading = true;
+        anim.SetTrigger("Reload");
+        Debug.Log("¿ªÊ¼»»µ¯...");
+    }
+
+    public void FinishReload()
+    {
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
+        isReloading = false;
         Debug.Log("»»µ¯Íê³É£¬µ¯Ò©: " + currentAmmo);
     }
 

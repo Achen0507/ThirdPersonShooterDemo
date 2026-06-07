@@ -10,10 +10,22 @@ public class PlayerShoot : MonoBehaviour
 
     [Header("命中反馈")]
     public GameObject hitEffect;    
-    public AudioClip shootSound;     
+    public AudioClip shootSound;
+
+    public GameObject muzzleFlashPrefab;
+    public Transform muzzlePoint;
 
     [Header("UI")]
-    public Text ammoText;             
+    public Text ammoText;
+
+    [Header("枪械模型")]
+    public GameObject weaponModel;
+
+    [Header("准星扩散")]
+    public CrosshairController crosshairController;
+
+    [Header("相机震动")]
+    public CameraShake cameraShake;
 
     private float nextFireTime = 0f;
     private int currentAmmo = 30;
@@ -29,6 +41,16 @@ public class PlayerShoot : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
 
         anim = GetComponent<Animator>();
+
+        if (weaponModel == null)
+        {
+            weaponModel = GameObject.Find("MGP7");
+
+            if (weaponModel != null)
+                Debug.Log("自动找到枪: " + weaponModel.name);
+            else
+                Debug.LogError("找不到枪！请手动拖拽赋值");
+        }
 
         UpdateAmmoUI();
     }
@@ -74,33 +96,57 @@ public class PlayerShoot : MonoBehaviour
                 Instantiate(hitEffect, hit.point, Quaternion.LookRotation(hit.normal));
             }
 
-            // 尝试对击中物体造成伤害
-           //EnemyHealth enemy = hit.transform.GetComponent<EnemyHealth>();
-           //if (enemy != null)
-           //{
-           //    enemy.TakeDamage(damage);
-           //}
-            else
+            EnemyHealth enemy = hit.transform.GetComponent<EnemyHealth>();
+            if (enemy != null)
             {
-                // 临时：打中其他物体就变红
-                Renderer rend = hit.transform.GetComponent<Renderer>();
-                if (rend != null)
-                {
-                    rend.material.color = Color.red;
-                }
+                enemy.TakeDamage(damage);
             }
+        }
+
+        if (muzzleFlashPrefab != null && muzzlePoint != null)
+        {
+            GameObject flash = Instantiate(muzzleFlashPrefab, muzzlePoint.position, muzzlePoint.rotation);
+            Destroy(flash, 0.1f); 
+        }
+
+        if (cameraShake != null)
+        {
+            Debug.Log("调用相机震动");
+            cameraShake.Shake();
         }
 
         if (shootSound != null && audioSource != null)
         {
             audioSource.PlayOneShot(shootSound);
         }
+
+        if (crosshairController != null)
+        {
+            crosshairController.AddShootFeedback();
+            crosshairController.AddRecoil();
+        }
     }
 
     void Reload() {
+        if (isReloading) return;
+        if (currentAmmo >= maxAmmo) return;
+        if (!anim.GetBool("isAiming")) return;
+
         isReloading = true;
         anim.SetTrigger("Reload");
+
+        if (weaponModel != null)
+            weaponModel.SetActive(false);
+
         Debug.Log("开始换弹...");
+        StartCoroutine(DelayedReload());
+    }
+
+    System.Collections.IEnumerator DelayedReload()
+    {
+        float reloadTime = 3.6f; 
+        yield return new WaitForSeconds(reloadTime);
+        FinishReload();
     }
 
     public void FinishReload()
@@ -108,7 +154,9 @@ public class PlayerShoot : MonoBehaviour
         currentAmmo = maxAmmo;
         UpdateAmmoUI();
         isReloading = false;
-        Debug.Log("换弹完成，弹药: " + currentAmmo);
+
+        if (weaponModel != null)
+            weaponModel.SetActive(true);
     }
 
     void UpdateAmmoUI() {

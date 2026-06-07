@@ -49,7 +49,7 @@ public class DirectMovement : MonoBehaviour
 
         float targetSpeed = walkSpeed;
 
-        if (Input.GetButton("Fire2"))  // 鼠标右键按住
+        if (Input.GetButton("Fire2"))  
         {
             targetSpeed = aimWalkSpeed;
             anim.SetBool("isAiming", true);
@@ -71,14 +71,17 @@ public class DirectMovement : MonoBehaviour
 
         float hasInput = (Mathf.Abs(horizontal) > 0.1f || Mathf.Abs(vertical) > 0.1f) ? 1f : 0f;
         anim.SetFloat("Speed", hasInput);
-         
-        controller.Move(moveDirection * currentSpeed * Time.deltaTime);
 
-       //if (moveDirection.magnitude > 0.1f)
-       //{
-       //    Quaternion targetRotation = Quaternion.Euler(0, cameraTransform.eulerAngles.y, 0);
-       //    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothTime * 10f);
-       //}    
+        // 让角色朝向移动方向（而不是相机方向）
+        if (moveDirection.magnitude > 0.1f)
+        {
+            // 计算移动方向的角度
+            float targetAngle = Mathf.Atan2(moveDirection.x, moveDirection.z) * Mathf.Rad2Deg;
+            Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothTime * 10f);
+        }
+
+        controller.Move(moveDirection * currentSpeed * Time.deltaTime);  
 
         bool isGrounded = groundChecker.IsGrounded;
 
@@ -89,11 +92,5 @@ public class DirectMovement : MonoBehaviour
         }
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            anim.SetTrigger("Reload");
-            // 换弹逻辑...
-        }
     }
 }

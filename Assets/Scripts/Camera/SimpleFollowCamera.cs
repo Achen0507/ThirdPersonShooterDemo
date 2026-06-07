@@ -118,9 +118,6 @@ public class SimpleFollowCamera : MonoBehaviour
         UpdateDynamicFOV();
     }
 
-    /// <summary>
-    /// 处理后退时的强制转身逻辑
-    /// </summary>
     private void HandleBackwardRotation()
     {
         if (!rotateCharacter) return;
@@ -136,14 +133,10 @@ public class SimpleFollowCamera : MonoBehaviour
         }
         else if (!shouldMoveBackward && isBackwardMoving)
         {
-            // 从后退转为前进，状态复位
             isBackwardMoving = false;
         }
     }
 
-    /// <summary>
-    /// 根据瞄准状态计算目标距离和高度
-    /// </summary>
     private void CalculateTargetDistanceAndHeight()
     {
         if (isAiming)
@@ -158,9 +151,6 @@ public class SimpleFollowCamera : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 检测碰撞并平滑调整相机位置
-    /// </summary>
     private void CheckCollisionAndAdjust(ref Vector3 idealPosition, Quaternion rotation)
     {
         Vector3 lookDirection = (idealPosition - target.position).normalized;
@@ -175,16 +165,15 @@ public class SimpleFollowCamera : MonoBehaviour
             collisionLayers))
         {
             float safeDistance = Mathf.Max(hit.distance - collisionBuffer, 0.5f);
-            safeDistance = Mathf.Min(safeDistance, desiredDistance);
 
             float smoothedDistance = Mathf.Lerp(currentDistance, safeDistance, Time.deltaTime * distanceSmoothSpeed);
+
+            smoothedDistance = Mathf.Min(smoothedDistance, desiredDistance);
+
             idealPosition = target.position + rotation * new Vector3(horizontalOffset, normalHeight, -smoothedDistance);
         }
     }
 
-    /// <summary>
-    /// 动态调整 FOV
-    /// </summary>
     private void UpdateDynamicFOV()
     {
         if (!useDynamicFOV || mainCamera == null) return;
@@ -192,9 +181,5 @@ public class SimpleFollowCamera : MonoBehaviour
         float targetFOV = isAiming ? aimFOV : normalFOV;
         mainCamera.fieldOfView = Mathf.Lerp(mainCamera.fieldOfView, targetFOV, Time.deltaTime * fovSmoothSpeed);
     }
-
-    /// <summary>
-    /// 外部调用：获取当前瞄准状态
-    /// </summary>
     public bool IsAiming => isAiming;
 }

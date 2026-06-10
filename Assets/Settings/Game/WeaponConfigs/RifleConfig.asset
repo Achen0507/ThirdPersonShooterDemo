@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31cb503880935d64da6f167dc6b66ffd, type: 3}
+  m_Name: RifleConfig
+  m_EditorClassIdentifier: 
+  weaponName: "\u6B65\u67AA"
+  type: 0
+  damage: 10
+  range: 20
+  fireRate: 1
+  maxAmmo: 30
+  attackCooldown: 0.5
+  muzzleFlashPrefab: {fileID: 100008, guid: f3613b78354895b469b7da1f0a90e686, type: 3}

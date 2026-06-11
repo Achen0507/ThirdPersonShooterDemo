@@ -41,32 +41,17 @@ public class EnemyHealth : MonoBehaviour,IDamageable
         UpdateHealthBar();
     }
 
-    private void Update()
-    {
-        if (currentHealth > 0 && player != null) {
-            Vector3 direction = (player.position - transform.position).normalized;
-            direction.y = 0;  // 水平移动
-            transform.position += direction * moveSpeed * Time.deltaTime;
-
-            if (direction != Vector3.zero) {
-                transform.forward = direction;
-            }
-        }
-
-#if UNITY_EDITOR
-            if (Input.GetKeyDown(KeyCode.K))
-            {
-                EditorApplication.isPaused = !EditorApplication.isPaused;
-                Debug.Log("游戏已" + (EditorApplication.isPaused ? "暂停" : "恢复"));
-            }
-#endif
-    }
-
     public void TakeDamage(float damage) {
         if (currentHealth <= 0) return;
 
         currentHealth -= damage;
         UpdateHealthBar();
+
+        Animator animator = GetComponent<Animator>();
+        if (animator != null)
+        {
+            animator.SetTrigger("Hit");
+        }
 
         if (hitEffect != null)
         {
